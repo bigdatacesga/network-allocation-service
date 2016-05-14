@@ -1,0 +1,9 @@
+{
+  "name": "testnetwork",
+  "description": "Unittest network",
+  "bridge": "virbrTEST",
+  "network": "10.222.0.0",
+  "netmask": "16",
+  "gateway": "10.222.0.1",
+  "addresses": ["10.222.1.101", "10.222.1.102", "10.222.1.103"]
+}

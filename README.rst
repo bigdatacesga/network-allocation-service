@@ -13,51 +13,91 @@ Endpoint: resources/networks/v1
 ::
     GET networks
     {
-        'admin': 'Internal administration network using virbrPRIVATE',
-        'storage': 'Internal storage network with jumbo frames using virbrSTORAGE',
-        'gluster': 'Network dedicated to gluster',
-        'public': 'Public network',
+        "admin": "Internal administration network using virbrPRIVATE",
+        "storage": "Internal storage network with jumbo frames using virbrSTORAGE",
+        "gluster": "Network dedicated to gluster",
+        "public": "Public network",
     }
 
     POST networks
     {
-        'name': 'admin',
-        'description': 'Internal administration network using virbrPRIVATE',
-        'bridge': 'virbrPRIVATE',
-        'network': '10.112.0.0',
-        'netmask': '16',
-        'gateway': '10.112.0.1',
-        'addresses': ['10.112.1.101', '10.112.1.102', '10.112.1.103']
+        "name": "admin",
+        "description": "Internal administration network using virbrPRIVATE",
+        "bridge": "virbrPRIVATE",
+        "network": "10.112.0.0",
+        "netmask": "16",
+        "gateway": "10.112.0.1",
+        "addresses": ["10.112.1.101", "10.112.1.102", "10.112.1.103"]
     }
 
     GET networks/<network>
     {
-        'name': 'admin',
-        'description': 'Internal administration network using virbrPRIVATE',
-        'bridge': 'virbrPRIVATE',
-        'network': '10.112.0.0',
-        'netmask': '16',
-        'gateway': '10.112.0.1',
+        "name": "admin",
+        "description": "Internal administration network using virbrPRIVATE",
+        "bridge": "virbrPRIVATE",
+        "network": "10.112.0.0",
+        "netmask": "16",
+        "gateway": "10.112.0.1",
     }
 
     GET networks/<network>/addresses
     {
-        'addresses': ['10.112.1.101', '10.112.1.102', '10.112.1.103']
+        "addresses": ["10.112.1.101", "10.112.1.102", "10.112.1.103"]
     }
 
     GET networks/<network>/addresses?free
     {
-        'addresses': ['10.112.1.101', '10.112.1.103']
+        "addresses": ["10.112.1.101", "10.112.1.103"]
     }
 
     GET networks/<network>/addresses?used
     {
-        'addresses': ['10.112.1.102']
+        "addresses": ["10.112.1.102"]
     }
 
     PUT networks/<network>/addresses/<address>
     {
-        'status': 'docker-jlopez-flexlm-1'
+        "clustername": "jenes-mpi-1.7.0-1",
+        "node": "node_0",
+        "status": "used"
+    }
+
+    GET networks/<network>/addresses?full
+    {
+        "addresses": [
+            {
+                "address": "10.117.243.104",
+                "clustername": "jenes-mpi-1.7.0-1",
+                "node": "node_1",
+                "status": "used"
+            },
+            {
+                "address": "10.117.243.105",
+                "clustername": "jenes-mpi-1.7.0-1",
+                "node": "node_0",
+                "status": "used"
+            }
+        ],
+        "number": 2
+    }
+
+    GET networks/<network>/addresses?used&full
+    {
+        "addresses": [
+            {
+                "address": "10.117.243.104",
+                "clustername": "jenes-mpi-1.7.0-1",
+                "node": "node_1",
+                "status": "used"
+            },
+            {
+                "address": "10.117.243.105",
+                "clustername": "jenes-mpi-1.7.0-1",
+                "node": "node_0",
+                "status": "used"
+            }
+        ],
+        "number": 2
     }
 
 KV Store
@@ -131,4 +171,39 @@ kv.set('instances/sistemas/networks/0.1.0/1/nodes/networks2/networks/eth0/bridge
 kv.set('instances/sistemas/networks/0.1.0/1/nodes/networks2/networks/eth0/gateway', '10.112.0.1')
 kv.set('instances/sistemas/networks/0.1.0/1/nodes/networks2/networks/eth0/netmask', '16')
 kv.set('instances/sistemas/networks/0.1.0/1/nodes/networks2/networks/eth0/network', '10.112.0.1')
+
+Building a docker image
+-----------------------
+```
+docker build -t network-allocation-service:0.1.1 .
+docker tag ae2476dfecab docker-registry.cesga.es:5000/network-allocation-service:0.1.1
+docker push docker-registry.cesga.es:5000/network-allocation-service:0.1.1
+
+```
+
+Running the service
+-------------------
+```
+docker-executor run instances/sistemas/networks/0.1.0/1/nodes/networks1
+docker-executor run instances/sistemas/networks/0.1.0/1/nodes/networks2
+```
+
+Registering networks
+--------------------
+```
+net =     {
+        'name': 'admin',
+        'description': 'Internal administration network using virbrPRIVATE',
+        'bridge': 'virbrPRIVATE',
+        'network': '10.112.0.0',
+        'netmask': '16',
+        'gateway': '10.112.0.1',
+        'addresses': ['10.112.1.{}'.format(n) for n in range(101, 255)]
+}
+networks.register(net)
+
+# To delete it
+kv.delete('resources/networks/admin', recursive=True)
+
+```
 

@@ -61,7 +61,10 @@ def register(network):
     for prop in network.keys():
         if prop == 'addresses':
             for address in network[prop]:
-                _kv.set('{0}/addresses/{1}'.format(basedn, address), 'free')
+                _kv.set('{0}/addresses/{1}/status'.format(basedn, address), 'free')
+                _kv.set('{0}/addresses/{1}/address'.format(basedn, address), address)
+                _kv.set('{0}/addresses/{1}/clustername'.format(basedn, address), '_')
+                _kv.set('{0}/addresses/{1}/node'.format(basedn, address), '_')
         else:
             _kv.set('{0}/{1}'.format(basedn, prop), network[prop])
 
@@ -80,47 +83,61 @@ def show(network):
     return properties
 
 
-def addresses(network, status='all'):
+def addresses(network, status='all', expanded=False):
     """Returns the status of all the addresses of a given network
 
     The addresses can be filtered by status using the status optional parameter
     which can take the values: 'all', 'free', 'used'
     """
     subtree = _kv.recurse('{0}/{1}/addresses'.format(PREFIX, network))
-    if status == 'free':
-        return filter(_parse_net_info(subtree), "free")
-        #return [{"address": _parse_address(k), "status": "free"} for k in subtree.keys() if k.endswith("status") and subtree[k] == 'free']
-    elif status == 'used':
-        #return [{"address": _parse_address(k), "status": "used"} for k in subtree.keys() if k.endswith("status") and subtree[k] != 'free']
-        return filter(_parse_net_info(subtree), "used")
+    if status == 'free' or status == 'used':
+        addresses = _filter(_parse_net_info(subtree), status)
     else:
-        #return [{"address": _parse_address(k)} for k in subtree.keys() if k.endswith("address")]
-        return _parse_net_info(subtree)
+        addresses = _parse_net_info(subtree)
+    return _format(addresses, expanded)
 
 
-def allocate(network, address, host, clustername, node):
-    """Allocate a given network address to a given host"""
-    _kv.set('{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address), host)
-    _kv.set('{0}/{1}/addresses/{2}/clustername'.format(PREFIX, network, address), clustername)
+def _format(addresses, expanded=False):
+    """Adjust output format of the addresses depending on the verbosity requested
+    
+    expanded=True means all the details about each address are given
+    expanded=False means only the list of IP addresses is returned
+    """
+    if expanded:
+        return addresses
+    else:
+        return [ip['address'] for ip in addresses]
+
+
+def allocate(network, address, node, cluster='_'):
+    """Allocate a given network address to a given node that can belong to a cluster"""
+    _kv.set('{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address), 'used')
+    _kv.set('{0}/{1}/addresses/{2}/cluster'.format(PREFIX, network, address), cluster)
     _kv.set('{0}/{1}/addresses/{2}/node'.format(PREFIX, network, address), node)
 
 
 def deallocate(network, address):
     """Deallocate a given network address"""
     _kv.set('{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address), 'free')
+    _kv.set('{0}/{1}/addresses/{2}/cluster'.format(PREFIX, network, address), '_')
+    _kv.set('{0}/{1}/addresses/{2}/node'.format(PREFIX, network, address), '_')
 
 
 def status(network, address):
     """Returns the status of a given network address"""
-    return _kv.get('{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address))
+    status = {}
+    status['status'] = _kv.get(
+        '{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address))
+    status['clustername'] = _kv.get(
+        '{0}/{1}/addresses/{2}/clustername'.format(PREFIX, network, address)) 
+    status['node'] = _kv.get('{0}/{1}/addresses/{2}/node'.format(PREFIX, network, address))
+    return status
 
 
-def filter(nets, status):
-    new_nets = []
-    for net in nets:
-        if net["status"] == status:
-            new_nets.append(net)
-    return new_nets
+def _filter(addresses, status):
+    """Filter addresses by status"""
+    return [ip for ip in addresses if ip["status"] == status]
+
 
 def _parse_net_info(subtree):
     nets_info = dict()
@@ -139,8 +156,10 @@ def _parse_net_info(subtree):
         nets_list.append(nets_info[k])
     return nets_list
 
+
 def _parse_last_element(key):
     return key.split('/')[-1]
+
 
 def _parse_networkname(key):
     """Extract network name from key"""
