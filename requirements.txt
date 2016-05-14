@@ -1,0 +1,6 @@
+Flask
+kvstore
+requests
+python-keyczar
+coverage
+gunicorn
