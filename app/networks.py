@@ -31,11 +31,14 @@ storage_net = {
 """
 import kvstore
 
+NETWORKS_VERSION_PATH = "testing"
+
 # Create a global kvstore client
 #ENDPOINT = 'http://10.112.0.101:8500/v1/kv'
 ENDPOINT = 'http://127.0.0.1:8500/v1/kv'
 _kv = kvstore.Client(ENDPOINT)
-PREFIX = 'resources/networks'
+#PREFIX = 'resources/networks'
+PREFIX = 'resources/networks/' + NETWORKS_VERSION_PATH
 
 
 def connect(endpoint):
@@ -78,7 +81,7 @@ def list():
 def show(network):
     """Show the properties of a given network"""
     properties = {}
-    for k in ('name', 'description', 'bridge', 'network', 'netmask', 'gateway'):
+    for k in ('name', 'description', 'bridge', 'network', 'netmask', 'gateway', 'networkname'):
         properties[k] = _kv.get('{0}/{1}/{2}'.format(PREFIX, network, k))
     return properties
 
