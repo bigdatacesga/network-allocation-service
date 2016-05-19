@@ -31,7 +31,7 @@ storage_net = {
 """
 import kvstore
 
-NETWORKS_VERSION_PATH = "testing"
+NETWORKS_VERSION_PATH = "production"
 
 # Create a global kvstore client
 #ENDPOINT = 'http://10.112.0.101:8500/v1/kv'
