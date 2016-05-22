@@ -18,4 +18,4 @@ app.logger.handlers.extend(logging.getLogger("gunicorn.error").handlers)
 app.logger.handlers.extend(logging.getLogger("gunicorn").handlers)
 
 if __name__ == '__main__':
-    application.run(host='127.0.0.1', port=5001)
+    application.run(host='127.0.0.1', port=5000)
