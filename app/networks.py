@@ -11,7 +11,7 @@
 
 
 admin_net = {
-    'name': 'admin',
+    'networkname': 'admin',
     'description': 'Internal administration network using virbrPRIVATE',
     'bridge': 'virbrPRIVATE',
     'network': '10.112.0.0',
@@ -20,7 +20,7 @@ admin_net = {
     'addresses': ['10.112.243.{}'.format(n) for n in range(1, 255)]
 }
 storage_net = {
-    'name': 'storage',
+    'networkname': 'storage',
     'description': 'Storage network using virbrSTORAGE',
     'bridge': 'virbrSTORAGE',
     'network': '10.117.0.0',
@@ -31,11 +31,13 @@ storage_net = {
 """
 import kvstore
 
+NETWORKS_VERSION_PATH = "production"
+
 # Create a global kvstore client
-#ENDPOINT = 'http://10.112.0.101:8500/v1/kv'
-ENDPOINT = 'http://127.0.0.1:8500/v1/kv'
+ENDPOINT = 'http://10.112.0.101:8500/v1/kv'
+
 _kv = kvstore.Client(ENDPOINT)
-PREFIX = 'resources/networks'
+PREFIX = 'resources/networks/' + NETWORKS_VERSION_PATH
 
 
 def connect(endpoint):
@@ -48,7 +50,7 @@ def register(network):
     """Register a new network
 
     network = {
-        'name': 'admin',
+        'networkname': 'admin',
         'description': 'Internal administration network using virbrPRIVATE',
         'bridge': 'virbrPRIVATE',
         'network': '10.112.0.0',
@@ -57,7 +59,7 @@ def register(network):
         'addresses': ['10.112.243.{}'.format(n) for n in range(1, 255)]
     }
     """
-    basedn = '{0}/{1}'.format(PREFIX, network['name'])
+    basedn = '{0}/{1}'.format(PREFIX, network['networkname'])
     for prop in network.keys():
         if prop == 'addresses':
             for address in network[prop]:
@@ -72,13 +74,13 @@ def register(network):
 def list():
     """Returns the list of registered networks"""
     subtree = _kv.recurse(PREFIX)
-    return {'networks': [subtree[k] for k in subtree.keys() if k.endswith('/name')]}
+    return {'networks': [subtree[k] for k in subtree.keys() if k.endswith('/networkname')]}
 
 
 def show(network):
     """Show the properties of a given network"""
     properties = {}
-    for k in ('name', 'description', 'bridge', 'network', 'netmask', 'gateway'):
+    for k in ('description', 'bridge', 'network', 'netmask', 'gateway', 'networkname'):
         properties[k] = _kv.get('{0}/{1}/{2}'.format(PREFIX, network, k))
     return properties
 
