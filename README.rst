@@ -198,7 +198,7 @@ net =     {
         'network': '10.112.0.0',
         'netmask': '16',
         'gateway': '10.112.0.1',
-        'addresses': ['10.112.1.{}'.format(n) for n in range(101, 255)]
+        'addresses': ['10.112.243.{}'.format(n) for n in range(1, 255)]
 }
 networks.register(net)
 
