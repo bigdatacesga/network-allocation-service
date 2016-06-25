@@ -65,6 +65,23 @@ def get_address_status(network, address):
     return jsonify(status)
 
 
+@api.route('/networks/<network>/allocate', methods=['POST'])
+def allocate_addresses(network):
+    # Handle Content-Type: application/json requests
+    if request.get_json():
+        data = request.get_json()
+        clustername = data['clustername']
+        node = data['node']
+    # Handle form param requests: eg. curl -d status=free
+    else:
+        clustername = request.form.get('clustername')
+        node = request.form.get('node')
+
+    addreses = networks.addresses(network, status='free', expanded=False)
+    address = addreses[0]
+    networks.allocate(network, address, node, clustername)
+    return address, 200
+
 @api.route('/networks/<network>/addresses/<address>', methods=['PUT'])
 def update_address_status(network, address):
     # Handle Content-Type: application/json requests

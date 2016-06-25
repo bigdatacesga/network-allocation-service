@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='network-allocation-service',
-    version='0.1.1',
+    version='0.2.0',
     author='Javier Cacheiro',
     author_email='bigdata-dev@cesga.es',
     url='https://github.com/javicacheiro/network-allocation-service',

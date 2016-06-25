@@ -108,7 +108,14 @@ def _format(addresses, expanded=False):
     if expanded:
         return addresses
     else:
-        return [ip['address'] for ip in addresses]
+        address_list = []
+        for ip in addresses:
+            try:
+                address_list.append(ip['address'])
+            except Exception:
+                # IP is badly configured, missing address attribute for some reason
+                pass
+        return address_list
 
 
 def allocate(network, address, node, cluster='_'):

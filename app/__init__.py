@@ -12,7 +12,7 @@ app.config.from_pyfile(cfg)
 # Configure networks endpoint
 from . import networks
 #FIXME: Add to configuration options
-networks.connect('http://10.112.0.101:8500/v1/kv')
+networks.connect('http://consul:8500/v1/kv')
 
 # Create a blueprint
 api = Blueprint('api', __name__)
