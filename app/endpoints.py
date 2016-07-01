@@ -1,17 +1,14 @@
 from flask import jsonify, request
 from . import api
 from . import networks
-from .decorators import restricted
 
 
-@api.route('/networks/', methods=['GET'])
 @api.route('/networks', methods=['GET'])
 def get_networks():
     results = networks.list()
     return jsonify(results)
 
 
-@api.route('/networks/', methods=['POST'])
 @api.route('/networks', methods=['POST'])
 def add_network():
     # WARN: In this case we only handle Content-Type: application/json requests
@@ -27,24 +24,12 @@ def add_network():
                                    'network, invalid request'}), 400
 
 
-@api.route('/networks/<network>/', methods=['GET'])
 @api.route('/networks/<network>', methods=['GET'])
 def get_network_properties(network):
     results = networks.show(network)
     return jsonify(results)
 
 
-def _validate_network(network):
-    """Validate network data"""
-    required_fields = ('name', 'description', 'bridge', 'network', 'netmask',
-                       'gateway', 'addresses')
-    if all(field in network for field in required_fields):
-        if isinstance(network['addresses'], list):
-            return True
-    return False
-
-
-@api.route('/networks/<network>/addresses/', methods=['GET'])
 @api.route('/networks/<network>/addresses', methods=['GET'])
 def get_network_addresses(network):
     expanded = False
@@ -65,22 +50,24 @@ def get_address_status(network, address):
     return jsonify(status)
 
 
-@api.route('/networks/<network>/allocate', methods=['POST'])
+@api.route('/networks/<network>', methods=['POST'])
 def allocate_addresses(network):
+    """Allocate a new network address"""
     # Handle Content-Type: application/json requests
     if request.get_json():
         data = request.get_json()
-        clustername = data['clustername']
+        cluster = data['cluster']
         node = data['node']
     # Handle form param requests: eg. curl -d status=free
     else:
-        clustername = request.form.get('clustername')
+        cluster = request.form.get('cluster')
         node = request.form.get('node')
 
-    addreses = networks.addresses(network, status='free', expanded=False)
-    address = addreses[0]
-    networks.allocate(network, address, node, clustername)
-    return address, 200
+    free_addresses = networks.addresses(network, status='free', expanded=False)
+    address = free_addresses[0]
+    networks.allocate(network, address, node, cluster)
+    return jsonify({'address': address}), 200
+
 
 @api.route('/networks/<network>/addresses/<address>', methods=['PUT'])
 def update_address_status(network, address):
@@ -88,18 +75,18 @@ def update_address_status(network, address):
     if request.get_json():
         data = request.get_json()
         status = data['status']
-        clustername = data['clustername']
+        cluster = data['cluster']
         node = data['node']
     # Handle form param requests: eg. curl -d status=free
     else:
         status = request.form.get('status')
-        clustername = request.form.get('clustername')
+        cluster = request.form.get('cluster')
         node = request.form.get('node')
     if status is not None:
         if status == 'free':
             networks.deallocate(network, address)
         else:
-            networks.allocate(network, address, node, clustername)
+            networks.allocate(network, address, node, cluster)
         return '', 204
     else:
         return jsonify({'status': '400',
@@ -108,7 +95,13 @@ def update_address_status(network, address):
                                    'address status from the request'}), 400
 
 
-@api.route('/test', methods=['GET'])
-@restricted(role='ROLE_USER')
-def echo_hello():
-    return jsonify({'message': 'Hello'})
+def _validate_network(network):
+    """Validate network data"""
+    required_fields = ('name', 'description', 'bridge', 'network', 'netmask',
+                       'gateway', 'addresses')
+    if all(field in network for field in required_fields):
+        if isinstance(network['addresses'], list):
+            return True
+    return False
+
+

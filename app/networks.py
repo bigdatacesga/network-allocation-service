@@ -25,19 +25,17 @@ storage_net = {
     'bridge': 'virbrSTORAGE',
     'network': '10.117.0.0',
     'netmask': '16',
-    'gateway': '',
+    'gateway': 'NONE',
     'addresses': ['10.117.243.{}'.format(n) for n in range(1, 255)]
 }
 """
 import kvstore
 
-NETWORKS_VERSION_PATH = "production"
-
 # Create a global kvstore client
-ENDPOINT = 'http://10.112.0.101:8500/v1/kv'
+ENDPOINT = 'http://consul:8500/v1/kv'
 
 _kv = kvstore.Client(ENDPOINT)
-PREFIX = 'resources/networks/' + NETWORKS_VERSION_PATH
+PREFIX = 'networks'
 
 
 def connect(endpoint):
@@ -65,7 +63,7 @@ def register(network):
             for address in network[prop]:
                 _kv.set('{0}/addresses/{1}/status'.format(basedn, address), 'free')
                 _kv.set('{0}/addresses/{1}/address'.format(basedn, address), address)
-                _kv.set('{0}/addresses/{1}/clustername'.format(basedn, address), '_')
+                _kv.set('{0}/addresses/{1}/cluster'.format(basedn, address), '_')
                 _kv.set('{0}/addresses/{1}/node'.format(basedn, address), '_')
         else:
             _kv.set('{0}/{1}'.format(basedn, prop), network[prop])
@@ -99,23 +97,15 @@ def addresses(network, status='all', expanded=False):
     return _format(addresses, expanded)
 
 
-def _format(addresses, expanded=False):
-    """Adjust output format of the addresses depending on the verbosity requested
-    
-    expanded=True means all the details about each address are given
-    expanded=False means only the list of IP addresses is returned
-    """
-    if expanded:
-        return addresses
-    else:
-        address_list = []
-        for ip in addresses:
-            try:
-                address_list.append(ip['address'])
-            except Exception:
-                # IP is badly configured, missing address attribute for some reason
-                pass
-        return address_list
+def status(network, address):
+    """Returns the status of a given network address"""
+    status = {}
+    status['status'] = _kv.get(
+        '{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address))
+    status['cluster'] = _kv.get(
+        '{0}/{1}/addresses/{2}/cluster'.format(PREFIX, network, address))
+    status['node'] = _kv.get('{0}/{1}/addresses/{2}/node'.format(PREFIX, network, address))
+    return status
 
 
 def allocate(network, address, node, cluster='_'):
@@ -132,15 +122,23 @@ def deallocate(network, address):
     _kv.set('{0}/{1}/addresses/{2}/node'.format(PREFIX, network, address), '_')
 
 
-def status(network, address):
-    """Returns the status of a given network address"""
-    status = {}
-    status['status'] = _kv.get(
-        '{0}/{1}/addresses/{2}/status'.format(PREFIX, network, address))
-    status['clustername'] = _kv.get(
-        '{0}/{1}/addresses/{2}/clustername'.format(PREFIX, network, address)) 
-    status['node'] = _kv.get('{0}/{1}/addresses/{2}/node'.format(PREFIX, network, address))
-    return status
+def _format(addresses, expanded=False):
+    """Adjust output format of the addresses depending on the verbosity requested
+
+    expanded=True means all the details about each address are given
+    expanded=False means only the list of IP addresses is returned
+    """
+    if expanded:
+        return addresses
+    else:
+        address_list = []
+        for ip in addresses:
+            try:
+                address_list.append(ip['address'])
+            except Exception:
+                # IP is badly configured, missing address attribute for some reason
+                pass
+        return address_list
 
 
 def _filter(addresses, status):

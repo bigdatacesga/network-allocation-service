@@ -8,7 +8,7 @@ Resource Allocation of network addresses
 
 REST API
 --------
-Endpoint: resources/networks/v1
+Endpoint: http://networks:5000/v1/
 
 ::
     GET networks
@@ -55,11 +55,31 @@ Endpoint: resources/networks/v1
         "addresses": ["10.112.1.102"]
     }
 
+
+    # Network address allocation: Atomic operation
+    POST networks/<network>
+    {
+        "cluster": "gluster-3.7.11-8",
+        "node": "glusternode0"
+    }
+
+    returns:
+
+        {"address": "10.112.243.109"}
+
+    # Network address allocation: manual mode (not recommended)
     PUT networks/<network>/addresses/<address>
     {
-        "clustername": "jenes-mpi-1.7.0-1",
-        "node": "node_0",
+        "cluster": "gluster-3.7.11-8",
+        "node": "glusternode0",
         "status": "used"
+    }
+
+    PUT networks/<network>/addresses/<address>
+    {
+        "cluster": "_",
+        "node": "_",
+        "status": "free"
     }
 
     GET networks/<network>/addresses?full

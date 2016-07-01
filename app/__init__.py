@@ -21,4 +21,4 @@ from . import endpoints
 from . import errors
 
 # register blueprints
-app.register_blueprint(api, url_prefix='/resources/networks/v1')
+app.register_blueprint(api, url_prefix='/v1')
