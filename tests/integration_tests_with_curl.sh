@@ -1,11 +1,7 @@
-curl -H "Content-Type: application/json" -X POST -d @testnetwork.json http://127.0.0.1:5006/resources/networks/v1/networks/
+curl -H "Content-Type: application/json" -X POST -d @admin-network.json http://networks:5000/v1/networks
 
-curl 'http://127.0.0.1:5006/resources/networks/v1/networks/testnetwork' | python -mjson.tool
-
-curl 'http://127.0.0.1:5006/resources/networks/v1/networks/testnetwork/addresses' | python -mjson.tool
-
-curl 'http://127.0.0.1:5006/resources/networks/v1/networks/testnetwork/addresses?full' | python -mjson.tool
-
-curl 'http://127.0.0.1:5006/resources/networks/v1/networks/testnetwork/addresses?free' | python -mjson.tool
-
-curl 'http://127.0.0.1:5006/resources/networks/v1/networks/testnetwork/addresses?free&full' | python -mjson.tool
+curl http://networks:5000/v1/networks/admin | python -mjson.tool
+curl http://networks:5000/v1/networks/admin/addresses | python -mjson.tool
+curl http://networks:5000/v1/networks/admin/addresses?full | python -mjson.tool
+curl http://networks:5000/v1/networks/admin/addresses?free | python -mjson.tool
+curl http://networks:5000/v1/networks/admin/addresses?free&full | python -mjson.tool

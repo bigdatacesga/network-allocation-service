@@ -48,7 +48,7 @@ def register(network):
     """Register a new network
 
     network = {
-        'networkname': 'admin',
+        'name': 'admin',
         'description': 'Internal administration network using virbrPRIVATE',
         'bridge': 'virbrPRIVATE',
         'network': '10.112.0.0',
@@ -57,7 +57,7 @@ def register(network):
         'addresses': ['10.112.243.{}'.format(n) for n in range(1, 255)]
     }
     """
-    basedn = '{0}/{1}'.format(PREFIX, network['networkname'])
+    basedn = '{0}/{1}'.format(PREFIX, network['name'])
     for prop in network.keys():
         if prop == 'addresses':
             for address in network[prop]:

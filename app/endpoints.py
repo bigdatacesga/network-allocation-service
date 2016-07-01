@@ -103,5 +103,3 @@ def _validate_network(network):
         if isinstance(network['addresses'], list):
             return True
     return False
-
-
