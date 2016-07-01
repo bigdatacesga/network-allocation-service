@@ -11,7 +11,7 @@
 
 
 admin_net = {
-    'networkname': 'admin',
+    'name': 'admin',
     'description': 'Internal administration network using virbrPRIVATE',
     'bridge': 'virbrPRIVATE',
     'network': '10.112.0.0',
@@ -20,7 +20,7 @@ admin_net = {
     'addresses': ['10.112.243.{}'.format(n) for n in range(1, 255)]
 }
 storage_net = {
-    'networkname': 'storage',
+    'name': 'storage',
     'description': 'Storage network using virbrSTORAGE',
     'bridge': 'virbrSTORAGE',
     'network': '10.117.0.0',
@@ -72,13 +72,13 @@ def register(network):
 def list():
     """Returns the list of registered networks"""
     subtree = _kv.recurse(PREFIX)
-    return {'networks': [subtree[k] for k in subtree.keys() if k.endswith('/networkname')]}
+    return {'networks': [subtree[k] for k in subtree.keys() if k.endswith('/name')]}
 
 
 def show(network):
     """Show the properties of a given network"""
     properties = {}
-    for k in ('description', 'bridge', 'network', 'netmask', 'gateway', 'networkname'):
+    for k in ('description', 'bridge', 'network', 'netmask', 'gateway', 'name'):
         properties[k] = _kv.get('{0}/{1}/{2}'.format(PREFIX, network, k))
     return properties
 
