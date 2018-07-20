@@ -211,7 +211,9 @@ docker-executor run instances/sistemas/networks/0.1.0/1/nodes/networks2
 Registering networks
 --------------------
 ```
-net =     {
+from app import networks
+
+net = {
         'name': 'admin',
         'description': 'Internal administration network using virbrPRIVATE',
         'bridge': 'virbrPRIVATE',
@@ -220,7 +222,33 @@ net =     {
         'gateway': '10.112.0.1',
         'addresses': ['10.112.243.{}'.format(n) for n in range(1, 255)]
 }
+
 networks.register(net)
+
+net = {
+        'name': 'storage',
+        'description': 'Internal storage network using virbrSTORAGE',
+        'bridge': 'virbrSTORAGE',
+        'network': '10.117.0.0',
+        'netmask': '16',
+        'gateway': '10.117.0.1',
+        'addresses': ['10.117.243.{}'.format(n) for n in range(1, 255)]
+}
+
+networks.register(net)
+
+net =  {
+        'name': 'bigdata',
+        'description': 'Bigdata new network using virbrBIGDATA',
+        'bridge': 'virbrBIGDATA',
+        'network': '10.121.0.0',
+        'netmask': '16',
+        'gateway': '10.121.0.1',
+        'addresses': ['10.121.243.{}'.format(n) for n in range(1, 255)]
+}
+
+networks.register(net)
+
 
 # To delete it
 kv.delete('resources/networks/admin', recursive=True)
